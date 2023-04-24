@@ -5,6 +5,9 @@
 // backends:
 // google drive, onedrive, mega
 // s3, b2, r2
+// quotes
+// random generation
+// cyberchef
 
 // TODO: figure out how to create multiple instances of one plugin?
 // e.g. each component creates its own instance
