@@ -33,7 +33,8 @@ function render(container, item) {
 			break
 		}
 	}
-	el.style.flex = /^\d*\.\d*fr/.test(item.size) ? `${item.size.slice(0, -2)} 0 0` : `0 0 ${item.size}`
+	const size = item.size ?? "1fr"
+	el.style.flex = /^\d+(\.\d*)?fr/.test(size) ? `${size.slice(0, -2)} 0 0` : `0 0 ${item.size}`
 	return el
 }
 

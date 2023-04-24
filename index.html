@@ -45,12 +45,11 @@
 	<script>render(document.body, JSON.parse(localStorage.getItem('so_layout')) ?? {
 		type: "panels",
 		direction: "horizontal",
-		size: "100%",
 		children: [
 			// it would be nice if layout editor could somehow detect fraction units
 			// maybe use flex + flex-grow in place of fr
-			{ type: "panel", size: "50%", name: "notes" },
-			{ type: "panel", size: "50%", name: "todos" },
+			{ type: "panel", name: "notes" },
+			{ type: "panel", name: "todos" },
 		],
 	})</script>
 </body>
