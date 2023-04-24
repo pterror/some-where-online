@@ -4,13 +4,54 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>&nbsp;</title>
+	<title>somewhere online</title>
+	<style>
+		:root {
+			font-family: Quicksand;
+			font-weight: 400;
+			--primary: #000000;
+			--primary-bg: #ffffff;
+			--secondary-bg: #eeeeee;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--primary: #ffffff;
+				--primary-bg: #222222;
+			--secondary-bg: #333333;
+			}
+		}
+
+		body {
+			color: var(--primary);
+			background: var(--primary-bg);
+			min-height: 100%;
+			margin: 0;
+			padding: 1em;
+		}
+
+		h1 {
+			margin-block-start: 0;
+		}
+	</style>
+	<link rel="preconnnect" href="https://fonts.googleapis.com">
+	<link rel="preconnnect" href="https://fonts.gstatic.com", crossorigin>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap">
 </head>
 <body>
 	<script src="index.js"></script>
-	<script src="plugins/lightbox.js"></script>
-	<script src="plugins/notes.js"></script>
-	<script src="plugins/todos.js"></script>
-	<script>applyLayout(JSON.parse(localStorage.getItem('so_layout')) ?? layout)</script>
+	<script src="panels/notes.js"></script>
+	<script src="panels/todos.js"></script>
+	<script>render(document.body, JSON.parse(localStorage.getItem('so_layout')) ?? {
+		type: "panels",
+		direction: "horizontal",
+		size: "100%",
+		children: [
+			// it would be nice if layout editor could somehow detect fraction units
+			// maybe use flex + flex-grow in place of fr
+			{ type: "panel", size: "50%", name: "notes" },
+			{ type: "panel", size: "50%", name: "todos" },
+		],
+	})</script>
 </body>
 </html>

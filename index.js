@@ -3,208 +3,39 @@
 // wysiwyg layout editor
 // finish plugins...
 
-// notes:
-// ["@plugin:element", , [templates]] isn't 100% flexible since the plugin still controls where the elements go
-
-/** @type {Layout} */
-const DEFAULT_LAYOUT = {
-	title: "somewhere online",
-	children: [
-		["style", , [`
-			:root {
-				font-family: Quicksand;
-				font-weight: 400;
-				--primary: #000000;
-				--primary-bg: #ffffff;
-			}
-
-			@media (prefers-color-scheme: dark) {
-				:root {
-					--primary: #ffffff;
-					--primary-bg: #222222;
-				}
-			}
-
-			body {
-				color: var(--primary);
-				background: var(--primary-bg);
-				overflow-y: hidden;
-			}
-		`]],
-		["link", { rel: "preconnnect", href: "https://fonts.googleapis.com" }],
-		["link", { rel: "preconnnect", href: "https://fonts.gstatic.com", crossorigin: "" }],
-		["link", { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap" }],
-		["div", {
-			style: "background: var(--primary-bg); z-index: 1000; position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; display: grid; place-items: center; text-align: center; font-size: min(16vw, 12vh); line-height: 2em; opacity: 1; transition: opacity 0.5s ease-in-out;"
-		}, [
-			"you are", ["br"], "somewhere", ["br"], "online", ["br"],
-			["svg:svg", {
-				width: "1.5em",
-				height: "1.5em",
-				viewBox: "0 0 32 32",
-				fill: "none",
-				stroke: "currentColor",
-				"stroke-linejoin": "round",
-				"stroke-width": "0.67",
-				style: "cursor: pointer",
-				onclick: "const div = event.currentTarget.parentElement; div.style.opacity = \"0\"; setTimeout(() => { div.remove(); document.body.style.overflowY = \"unset\"; }, 500);",
-			}, [
-				["svg:ellipse", { cx: "16", cy: "16", rx: "14", ry: "14" }],
-				["svg:path", { d: "M11 9L11 22 23 16Z" }],
-			]],
-		]],
-		/*["div", , [
-			["@notes:notes", , [["div", { contenteditable: "", onchange: "$setNote" }, [["$note"]]]]],
-			["button", { onclick: "trigger(event, 'notes', 'create')" }, ["+"]],
-		]],
-		["div", , [["ul", , [
-			["@todos:todos", , [["li", , [ // FIXME: somehow pass index, for this one and the one above
-				["input", { type: "checkbox", "trigger(event, 'todos', 'setStatus')" }],
-				["div", { contenteditable: "", onchange: "trigger(event, 'todos', 'setContents')" }, ["$todo"]]
-			]]]]
-		]]]],*/
-		// TODO: shortcuts plugin i guess - but lazy load (and lazy unload) it
-	],
-}
-
 // TODO: figure out how to create multiple instances of one plugin?
 // e.g. each component creates its own instance
 
-/** @type {Record<string, string>} */
-const NS_LOOKUP = {
-	svg: 'http://www.w3.org/2000/svg'
-}
-
 /** @type {Record<string, any>} */
 const PLUGIN_STATES = {}
-
-const EMPTY_OBJECT = Object.freeze({})
-/** @type {readonly never[]} */
-const EMPTY_ARRAY = Object.freeze([])
-
-/**
- * @param {Event} event 
- * @param {string} pluginName 
- * @param {string} eventName 
- */
-function trigger(event, pluginName, eventName) {
-	// @ts-expect-error
-	PLUGINS[pluginName]?.events?.[eventName]?.(event, PLUGIN_STATES[pluginName])
-}
+/** @type {Record<string, CreatePanel>} */
+const PANEL_CONSTRUCTORS = {}
 
 /**
  * @param {Element} container
- * @param {readonly (SerializedElement | string)[]} elementData
- * @param {Record<string, SerializedElement | string>} [variables]
- * @param {Record<string, (event: HTMLElementEvent) => void>} [events] */
-function render(container, elementData, variables = {}, events = {}) {
-	for (const elementDatum of elementData) {
-		if (typeof elementDatum === "string") {
-			container.appendChild(document.createTextNode(elementDatum))
-		} else {
-			const { 0: tagRaw, 1: attributes, 2: children } = elementDatum
-			if (tagRaw.startsWith("$")) {
-				const variable = variables[tagRaw.slice(1)]
-				if (variable) { render(container, [variable], variables) }
-				return
-			}
-			const { 1: isPlugin, 2: ns, 3: tag } = tagRaw.match(/^(@?)(?:(.*):)?(.+)$/) ?? [,'','','']
-			if (isPlugin) {
-				const plugin = PLUGINS[ns]
-				if (!plugin) { console.error(`plugin '${ns}' not found`); return }
-				const element = plugin.elements?.[tag]
-				if (!element) { console.error(`plugin '${ns}' has no element '${tag}'`); return }
-				container.append(...element(PLUGIN_STATES[ns], attributes ?? EMPTY_OBJECT, children ?? EMPTY_ARRAY))
-				return
-			}
-			const element = container.appendChild(document.createElementNS((ns && NS_LOOKUP[ns]) ?? "http://www.w3.org/1999/xhtml", tag))
-			if (attributes) {
-				for (const { 0: name, 1: value } of Object.entries(attributes)) {
-					if (name.startsWith("on") && value.startsWith("$")) {
-						// @ts-expect-error
-						element[name] = events[value]
-					} else {
-						element.setAttribute(name, value)
-					}
-				}
-			}
-			if (children) { render(element, children) }
+ * @param {PanelsItemData} item */
+function render(container, item) {
+	let el
+	switch (item.type) {
+		case "panel": {
+			const ctor = PANEL_CONSTRUCTORS[item.name]
+			if (!ctor) { console.error(`unknown panel type '${item.type}'`); return }
+			el = container.appendChild(ctor(item.options))
+			break
+		}
+		case "panels": {
+			el = container.appendChild(document.createElement("div"))
+			Object.assign(el.style, { display: "flex", flexFlow: item.direction === "horizontal" ? "row nowrap" : "column nowrap" })
+			for (const child of item.children) { render(el, child) }
+			break
 		}
 	}
+	el.style.flex = /^\d*\.\d*fr/.test(item.size) ? `${item.size.slice(0, -2)} 0 0` : `0 0 ${item.size}`
+	return el
 }
 
-/** @param {Layout} layout */
-function applyLayout(layout) {
-	document.title = layout.title
-	const bodyEl = document.createElement("body")
-	render(bodyEl, layout.children)
-	document.body.replaceWith(bodyEl)
+
+/** @param {string} name @param {CreatePanel} createPanel */
+function loadPanelType(name, createPanel) {
+	PANEL_CONSTRUCTORS[name] = createPanel
 }
-
-/** @type {Record<string, Plugin_<any>>} */
-const PLUGINS = {}
-
-// TODO: try to remember what i wanted this for
-const t = /** @type {T} */ (/** @type {Record<keyof T, unknown>} */ ({
-	void: { type: 'void' },
-	undefined: { type: 'undefined' },
-	string: { type: 'string' },
-	number: { type: 'number' },
-	integer: { type: 'integer' },
-	bigint: { type: 'bigint' },
-	symbol: { type: 'symbol' },
-	anyArray: { type: 'anyArray' },
-	anyObject: { type: 'anyObject' },
-	/** @param {unknown} shape */
-	optional(shape) { return { type: 'optional', shape } },
-	/** @param {unknown} shape */
-	tuple(shape) { return { type: 'tuple', shape } },
-	/** @param {unknown} shape */
-	struct(shape) { return { type: 'struct', shape } },
-	/** @param {unknown} item */
-	array(item) { return { type: 'array', item } },
-	/** @param {unknown} key @param {unknown} value */
-	dictionary(key, value) { return { type: 'dictionary', key, value } },
-}))
-
-/** @template {Record<PropertyKey, unknown>|void} [State=void] @param {Plugin_<State>} plugin */
-function loadPlugin(plugin) {
-	for (const style of plugin.styles ?? []) {
-		const styleEl = document.body.appendChild(document.createElement("link"))
-		styleEl.rel = "stylesheet"
-		styleEl.href = style
-	}
-	for (const script of plugin.scripts ?? []) {
-		const scriptEl = document.body.appendChild(document.createElement("script"))
-		scriptEl.src = typeof script === "string" ? script : script[0]
-	}
-	if (PLUGINS[plugin.name]) { console.error(`another plugin named '${plugin.name}' has already been loaded`) }
-	PLUGINS[plugin.name] = plugin
-	PLUGIN_STATES[plugin.name] = plugin.load()
-}
-
-/** @param {Plugin_<any>} plugin */
-function unloadPlugin(plugin) {
-	for (const style of plugin.styles ?? []) {
-		const styleEl = document.querySelector(`link[rel=stylesheet][href=${style}]`)
-		if (styleEl) { document.body.removeChild(styleEl) }
-	}
-	for (let script of plugin.scripts ?? []) {
-		if (typeof script !== 'string') {
-			let unload
-			({ 0: script, 1: unload } = script)
-			unload()
-		}
-		const scriptEl = document.querySelector(`script[src=${script}]`)
-		if (scriptEl) { document.body.removeChild(scriptEl) }
-	}
-	delete PLUGINS[plugin.name]
-	plugin.unload?.(PLUGIN_STATES[plugin.name])
-	delete PLUGIN_STATES[plugin.name]
-	// TODO: remove nodes associated with plugin
-}
-
-const layout = (() => {
-	const json = localStorage.getItem("so_layout")
-	return json ? JSON.parse(json) : DEFAULT_LAYOUT
-})()
