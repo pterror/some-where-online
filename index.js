@@ -2,6 +2,9 @@
 // show errors - either in hooked console, toast, or other modal
 // wysiwyg layout editor
 // finish plugins...
+// backends:
+// google drive, onedrive, mega
+// s3, b2, r2
 
 // TODO: figure out how to create multiple instances of one plugin?
 // e.g. each component creates its own instance

@@ -27,7 +27,7 @@ loadPanelType("notes", () => {
 		itemEl.style.background = "var(--secondary-bg)"
 		itemEl.style.margin = "0.5rem"
 		itemEl.contentEditable = "true"
-		const normalOnChange = () => {
+		const normalOnInput = () => {
 			item.html = itemEl.innerHTML
 			save()
 		}
@@ -35,7 +35,7 @@ loadPanelType("notes", () => {
 			item.html = itemEl.innerHTML
 			state.items.push(item)
 			save()
-			itemEl.onchange = normalOnChange
+			itemEl.oninput = normalOnInput
 			createEmptyItem()
 		}
 	}
