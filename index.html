@@ -8,7 +8,9 @@
 </head>
 <body>
 	<script src="index.js"></script>
+	<script src="plugins/lightbox.js"></script>
 	<script src="plugins/notes.js"></script>
 	<script src="plugins/todos.js"></script>
+	<script>applyLayout(JSON.parse(localStorage.getItem('so_layout')) ?? layout)</script>
 </body>
 </html>

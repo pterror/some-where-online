@@ -20,6 +20,12 @@ interface Layout {
 	children: (SerializedElement | string)[]
 }
 
+type What = Event["target"]
+interface HTMLElementEvent extends Event {
+	target: HTMLElement | null
+	currentTarget: HTMLElement | null
+}
+
 // FIXME: better interface
 // web components?
 interface Plugin_<State> {
@@ -28,7 +34,7 @@ interface Plugin_<State> {
 	styles?: string[]
 	shape?: { [K in keyof State]: Type<State[K]> }
 	elements?: Record<string, (state: State, attributes: Record<string, string>, templates: readonly (string | SerializedElement)[]) => Element[]>
-	/** Returns a function to free any handlers. */
+	events?: Record<string, (event: HTMLElementEvent, state: State) => void>
 	load: () => NoInfer<State>
 	unload?: (state: NoInfer<State>) => void
 }
@@ -52,5 +58,5 @@ interface T {
 	tuple: <Ts extends [] | readonly Type<unknown>[]>(item: Ts) => Type<{ [K in keyof Ts]: Ts[K][typeof TYPE] }>
 	struct: <Ts extends Record<K, Type<unknown>>, K extends keyof Ts = keyof Ts>(item: Ts) => Type<{ [K in keyof Ts]: Ts[K][typeof TYPE] }>
 	array: <T>(item: Type<T>) => Type<T[]>
-	dictionary: <K, V>(key: Type<K>, value: Type<V>) => Type<Record<K, V>>
+	dictionary: <K extends PropertyKey, V>(key: Type<K>, value: Type<V>) => Type<Record<K, V>>
 }

@@ -35,7 +35,7 @@ const DEFAULT_LAYOUT = {
 		["link", { rel: "preconnnect", href: "https://fonts.gstatic.com", crossorigin: "" }],
 		["link", { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap" }],
 		["div", {
-			style: "position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; display: grid; place-items: center; text-align: center; font-size: min(16vw, 12vh); line-height: 2em; opacity: 1; transition: opacity 0.5s ease-in-out;"
+			style: "background: var(--primary-bg); z-index: 1000; position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; display: grid; place-items: center; text-align: center; font-size: min(16vw, 12vh); line-height: 2em; opacity: 1; transition: opacity 0.5s ease-in-out;"
 		}, [
 			"you are", ["br"], "somewhere", ["br"], "online", ["br"],
 			["svg:svg", {
@@ -54,16 +54,21 @@ const DEFAULT_LAYOUT = {
 			]],
 		]],
 		/*["div", , [
-			["@notes:notes", , [["div", { contenteditable: "" }, ["$note"]]]]
+			["@notes:notes", , [["div", { contenteditable: "", onchange: "$setNote" }, [["$note"]]]]],
+			["button", { onclick: "trigger(event, 'notes', 'create')" }, ["+"]],
 		]],
 		["div", , [["ul", , [
-			["@todos:todos", , [["li", , [["input", { type: "checkbox" }], ["div", { contenteditable: "" }, ["$todo"]]]]]]
+			["@todos:todos", , [["li", , [ // FIXME: somehow pass index, for this one and the one above
+				["input", { type: "checkbox", "trigger(event, 'todos', 'setStatus')" }],
+				["div", { contenteditable: "", onchange: "trigger(event, 'todos', 'setContents')" }, ["$todo"]]
+			]]]]
 		]]]],*/
 		// TODO: shortcuts plugin i guess - but lazy load (and lazy unload) it
 	],
 }
 
-// TODO: figure out how to instantiate plugins
+// TODO: figure out how to create multiple instances of one plugin?
+// e.g. each component creates its own instance
 
 /** @type {Record<string, string>} */
 const NS_LOOKUP = {
@@ -78,10 +83,21 @@ const EMPTY_OBJECT = Object.freeze({})
 const EMPTY_ARRAY = Object.freeze([])
 
 /**
+ * @param {Event} event 
+ * @param {string} pluginName 
+ * @param {string} eventName 
+ */
+function trigger(event, pluginName, eventName) {
+	// @ts-expect-error
+	PLUGINS[pluginName]?.events?.[eventName]?.(event, PLUGIN_STATES[pluginName])
+}
+
+/**
  * @param {Element} container
- * @param {(SerializedElement | string)[]} elementData
- * @param {Record<string, SerializedElement | string>} [variables] */
-function render(container, elementData, variables = {}) {
+ * @param {readonly (SerializedElement | string)[]} elementData
+ * @param {Record<string, SerializedElement | string>} [variables]
+ * @param {Record<string, (event: HTMLElementEvent) => void>} [events] */
+function render(container, elementData, variables = {}, events = {}) {
 	for (const elementDatum of elementData) {
 		if (typeof elementDatum === "string") {
 			container.appendChild(document.createTextNode(elementDatum))
@@ -98,13 +114,18 @@ function render(container, elementData, variables = {}) {
 				if (!plugin) { console.error(`plugin '${ns}' not found`); return }
 				const element = plugin.elements?.[tag]
 				if (!element) { console.error(`plugin '${ns}' has no element '${tag}'`); return }
-				element(PLUGIN_STATES[ns], attributes ?? EMPTY_OBJECT, children ?? EMPTY_ARRAY)
+				container.append(...element(PLUGIN_STATES[ns], attributes ?? EMPTY_OBJECT, children ?? EMPTY_ARRAY))
 				return
 			}
-			const element = container.appendChild(document.createElementNS((ns && NS_LOOKUP[ns]) ?? 'http://www.w3.org/1999/xhtml', tag))
+			const element = container.appendChild(document.createElementNS((ns && NS_LOOKUP[ns]) ?? "http://www.w3.org/1999/xhtml", tag))
 			if (attributes) {
 				for (const { 0: name, 1: value } of Object.entries(attributes)) {
-					element.setAttribute(name, value)
+					if (name.startsWith("on") && value.startsWith("$")) {
+						// @ts-expect-error
+						element[name] = events[value]
+					} else {
+						element.setAttribute(name, value)
+					}
 				}
 			}
 			if (children) { render(element, children) }
@@ -146,7 +167,7 @@ const t = /** @type {T} */ (/** @type {Record<keyof T, unknown>} */ ({
 	dictionary(key, value) { return { type: 'dictionary', key, value } },
 }))
 
-/** @template {Record<PropertyKey, unknown> | void} [State=void] @param {Plugin_<State>} plugin */
+/** @template {Record<PropertyKey, unknown>|void} [State=void] @param {Plugin_<State>} plugin */
 function loadPlugin(plugin) {
 	for (const style of plugin.styles ?? []) {
 		const styleEl = document.body.appendChild(document.createElement("link"))
@@ -187,5 +208,3 @@ const layout = (() => {
 	const json = localStorage.getItem("so_layout")
 	return json ? JSON.parse(json) : DEFAULT_LAYOUT
 })()
-
-setTimeout(() => applyLayout(layout), 1)
