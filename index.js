@@ -8,6 +8,10 @@
 // quotes
 // random generation
 // cyberchef
+// ace editor
+// tinymce
+// photopea
+// excalidraw
 
 // TODO: figure out how to create multiple instances of one plugin?
 // e.g. each component creates its own instance

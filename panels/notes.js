@@ -19,7 +19,8 @@ loadPanelType("notes", () => {
 	const render = (item) => {
 		const itemEl = listEl.appendChild(document.createElement("div"))
 		Object.assign(itemEl.style, {
-			background: "var(--secondary-bg)", margin: "0.5rem", display: "flex"
+			background: "var(--secondary-bg)", margin: "0.5rem", display: "flex",
+			minHeight: "2lh",
 		})
 		const contentEl = itemEl.appendChild(document.createElement("div"))
 		contentEl.style.flex = "1 0 auto"
@@ -50,13 +51,19 @@ loadPanelType("notes", () => {
 	}
 	const createEmptyItem = () => {
 		const item = { html: "" }
-		const { contentEl } = render(item)
+		const { itemEl, contentEl } = render(item)
+		const onMouseEnter = itemEl.onmouseenter
+		itemEl.onmouseenter = null
+		const onMouseLeave = itemEl.onmouseleave
+		itemEl.onmouseleave = null
 		const normalOnInput = contentEl.oninput
 		contentEl.oninput = () => {
 			item.html = contentEl.innerHTML
 			state.items.push(item)
 			save()
 			contentEl.oninput = normalOnInput
+			itemEl.onmouseenter = onMouseEnter
+			itemEl.onmouseleave = onMouseLeave
 			createEmptyItem()
 		}
 	}

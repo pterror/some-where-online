@@ -64,20 +64,23 @@ loadPanelType("todos", () => {
 	}
 	const createEmptyItem = () => {
 		const item = { done: false, html: "" }
-		const { checkboxEl, textEl } = render(item)
-		const normalOnChecked = checkboxEl.onchange
+		const { itemEl, checkboxEl, textEl } = render(item)
+		textEl.style.borderBottom = "1px solid"
+		checkboxEl.disabled = true
 		const normalOnInput = textEl.oninput
+		const onMouseEnter = itemEl.onmouseenter
+		itemEl.onmouseenter = null
+		const onMouseLeave = itemEl.onmouseleave
+		itemEl.onmouseleave = null
 		const saveAndCreateNew = () => {
+			textEl.style.borderBottom = ""
+			checkboxEl.disabled = false
 			state.items.push(item)
 			save()
-			checkboxEl.onchange = normalOnChecked
 			textEl.oninput = normalOnInput
+			itemEl.onmouseenter = onMouseEnter
+			itemEl.onmouseleave = onMouseLeave
 			createEmptyItem()
-		}
-		checkboxEl.onchange = () => {
-			item.done = checkboxEl.checked
-			style(textEl, checkboxEl.checked)
-			saveAndCreateNew()
 		}
 		textEl.oninput = () => {
 			item.html = textEl.innerHTML
