@@ -25,23 +25,6 @@ loadPanelType("todos", () => {
 	const render = (item) => {
 		const itemEl = listEl.appendChild(document.createElement("div"))
 		itemEl.style.display = "flex"
-		const checkboxEl = itemEl.appendChild(document.createElement("input"))
-		checkboxEl.style.margin = "0 0.5rem"
-		checkboxEl.type = "checkbox"
-		checkboxEl.checked = item.done
-		const textEl = itemEl.appendChild(document.createElement("div"))
-		textEl.style.flex = "1 0 auto"
-		textEl.contentEditable = "true"
-		textEl.innerHTML = item.html
-		checkboxEl.onchange = () => {
-			item.done = checkboxEl.checked
-			style(textEl, checkboxEl.checked)
-			save()
-		}
-		textEl.oninput = () => {
-			item.html = textEl.innerHTML
-			save()
-		}
 		itemEl.onmouseenter = () => {
 			itemEl.appendChild(actionsEl)
 			deleteEl.onclick = () => {
@@ -56,6 +39,23 @@ loadPanelType("todos", () => {
 		itemEl.onmouseleave = () => {
 			itemEl.removeChild(actionsEl)
 		}
+		const checkboxEl = itemEl.appendChild(document.createElement("input"))
+		checkboxEl.style.margin = "0 0.5rem"
+		checkboxEl.type = "checkbox"
+		checkboxEl.checked = item.done
+		checkboxEl.onchange = () => {
+			item.done = checkboxEl.checked
+			style(textEl, checkboxEl.checked)
+			save()
+		}
+		const textEl = itemEl.appendChild(document.createElement("div"))
+		textEl.style.flex = "1 0 auto"
+		textEl.contentEditable = "true"
+		textEl.innerHTML = item.html
+		textEl.oninput = () => {
+			item.html = textEl.innerHTML
+			save()
+		}
 		style(textEl, checkboxEl.checked)
 		return { itemEl, checkboxEl, textEl }
 	}
@@ -65,21 +65,21 @@ loadPanelType("todos", () => {
 	const createEmptyItem = () => {
 		const item = { done: false, html: "" }
 		const { itemEl, checkboxEl, textEl } = render(item)
-		textEl.style.borderBottom = "1px solid"
-		checkboxEl.disabled = true
-		const normalOnInput = textEl.oninput
 		const onMouseEnter = itemEl.onmouseenter
 		itemEl.onmouseenter = null
 		const onMouseLeave = itemEl.onmouseleave
 		itemEl.onmouseleave = null
+		checkboxEl.disabled = true
+		textEl.style.borderBottom = "1px solid"
+		const normalOnInput = textEl.oninput
 		const saveAndCreateNew = () => {
-			textEl.style.borderBottom = ""
 			checkboxEl.disabled = false
+			textEl.style.borderBottom = ""
 			state.items.push(item)
 			save()
-			textEl.oninput = normalOnInput
 			itemEl.onmouseenter = onMouseEnter
 			itemEl.onmouseleave = onMouseLeave
+			textEl.oninput = normalOnInput
 			createEmptyItem()
 		}
 		textEl.oninput = () => {

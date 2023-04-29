@@ -7,7 +7,7 @@
 	const chiptune2 = document.createElement("script")
 	chiptune2.src = "https://cdn.jsdelivr.net/gh/deskjet/chiptune2.js@master/chiptune2.js"
 	document.body.appendChild(chiptune2)
-})
+})()
 
 loadPanelType("modArchive", () => {
 	// IMPL

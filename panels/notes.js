@@ -61,9 +61,9 @@ loadPanelType("notes", () => {
 			item.html = contentEl.innerHTML
 			state.items.push(item)
 			save()
-			contentEl.oninput = normalOnInput
 			itemEl.onmouseenter = onMouseEnter
 			itemEl.onmouseleave = onMouseLeave
+			contentEl.oninput = normalOnInput
 			createEmptyItem()
 		}
 	}

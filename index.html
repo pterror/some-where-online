@@ -9,23 +9,34 @@
 		:root {
 			font-family: Quicksand;
 			font-weight: 400;
-			--primary: #000000;
-			--primary-bg: #ffffff;
-			--secondary-bg: #eeeeee;
+			--primary-rgb: 0, 0, 0;
+			--primary: rgb(var(--primary-rgb));
+			--primary-bg-rgb: 255, 255, 255;
+			--primary-bg: rgb(var(--primary-bg-rgb));
+			--secondary-bg-rgb: 238, 238, 238;
+			--secondary-bg: rgb(var(--secondary-bg-rgb));
 		}
 
 		@media (prefers-color-scheme: dark) {
 			:root {
-				--primary: #ffffff;
 				--primary-bg: #222222;
-			--secondary-bg: #333333;
+				--secondary-bg: #333333;
+				--primary-rgb: 255, 255, 255;
+				--primary: rgb(var(--primary-rgb));
+				--primary-bg-rgb: 34, 34, 34;
+				--primary-bg: rgb(var(--primary-bg-rgb));
+				--secondary-bg-rgb: 51, 51, 51;
+				--secondary-bg: rgb(var(--secondary-bg-rgb));
 			}
 		}
 
 		body {
+			display: flex;
+			flex-flow: column nowrap;
 			color: var(--primary);
 			background: var(--primary-bg);
-			min-height: 100%;
+			box-sizing: border-box;
+			min-height: 100vh;
 			margin: 0;
 			padding: 1em;
 		}
@@ -42,14 +53,32 @@
 	<script src="index.js"></script>
 	<script src="panels/notes.js"></script>
 	<script src="panels/todos.js"></script>
+	<script src="panels/tinymce.js"></script>
+	<script src="panels/ace.js"></script>
+	<script src="panels/monaco.js"></script>
 	<script>render(document.body, JSON.parse(localStorage.getItem('so_layout')) ?? {
 		type: "panels",
-		direction: "horizontal",
+		direction: "vertical",
 		children: [
 			// it would be nice if layout editor could somehow detect fraction units
-			// maybe use flex + flex-grow in place of fr
-			{ type: "panel", name: "notes" },
-			{ type: "panel", name: "todos" },
+			{
+				type: "panels",
+				direction: "horizontal",
+				children: [
+					// it would be nice if layout editor could somehow detect fraction units
+					{ type: "panel", name: "notes" },
+					{ type: "panel", name: "todos" },
+				],
+			},
+			{
+				type: "panels",
+				direction: "horizontal",
+				children: [
+					{ type: "panel", name: "tinymce" },
+					{ type: "panel", name: "ace" },
+					{ type: "panel", name: "monaco" },
+				],
+			},
 		],
 	})</script>
 </body>
