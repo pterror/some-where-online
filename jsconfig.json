@@ -4,6 +4,7 @@
 		"allowJs": true,
 		"checkJs": true,
 		"strict": true,
+		"exactOptionalPropertyTypes": true,
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitReturns": true,
 		"noPropertyAccessFromIndexSignature": true,

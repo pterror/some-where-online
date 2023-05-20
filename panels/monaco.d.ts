@@ -1,6 +1,3 @@
-declare global {
-	var require: any
-	var monaco: any
+interface Panels {
+	monaco: { panelType: "monaco", options: { store?: string, key?: string } }
 }
-
-export {}

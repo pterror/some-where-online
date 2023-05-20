@@ -19,13 +19,11 @@
 
 		@media (prefers-color-scheme: dark) {
 			:root {
-				--primary-bg: #222222;
-				--secondary-bg: #333333;
 				--primary-rgb: 255, 255, 255;
 				--primary: rgb(var(--primary-rgb));
-				--primary-bg-rgb: 34, 34, 34;
+				--primary-bg-rgb: 34, 34, 42;
 				--primary-bg: rgb(var(--primary-bg-rgb));
-				--secondary-bg-rgb: 51, 51, 51;
+				--secondary-bg-rgb: 51, 51, 63;
 				--secondary-bg: rgb(var(--secondary-bg-rgb));
 			}
 		}
@@ -50,36 +48,41 @@
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap">
 </head>
 <body>
+	<script src="type.js"></script>
 	<script src="index.js"></script>
+	<script src="layouts/panel.js"></script>
+	<script src="layouts/panels.js"></script>
+	<script src="stores/indexeddb.js"></script>
 	<script src="panels/notes.js"></script>
 	<script src="panels/todos.js"></script>
+	<script src="panels/storeList.js"></script>
 	<script src="panels/tinymce.js"></script>
 	<script src="panels/ace.js"></script>
 	<script src="panels/monaco.js"></script>
-	<script>render(document.body, JSON.parse(localStorage.getItem('so_layout')) ?? {
-		type: "panels",
-		direction: "vertical",
-		children: [
-			// it would be nice if layout editor could somehow detect fraction units
-			{
-				type: "panels",
-				direction: "horizontal",
-				children: [
-					// it would be nice if layout editor could somehow detect fraction units
-					{ type: "panel", name: "notes" },
-					{ type: "panel", name: "todos" },
-				],
-			},
-			{
-				type: "panels",
-				direction: "horizontal",
-				children: [
-					{ type: "panel", name: "tinymce" },
-					{ type: "panel", name: "ace" },
-					{ type: "panel", name: "monaco" },
-				],
-			},
-		],
-	})</script>
+	<script src="panels/fileTree.js"></script>
+	<script>
+		storeGet("indexeddb", "global/layout").then(data => render(document.body, data ?? {
+			type: "panels",
+			direction: "vertical",
+			children: [
+				// it would be nice if layout editor could somehow detect fraction units
+				{
+					type: "panels",
+					direction: "horizontal",
+					children: [
+						// it would be nice if layout editor could somehow detect fraction units
+						{ type: "panel", panelType: "notes" }, { type: "panel", panelType: "todos" }, { type: "panel", panelType: "storeList" },
+					],
+				},
+				{
+					type: "panels",
+					direction: "horizontal",
+					children: [
+						{ type: "panel", panelType: "fileTree", }, { type: "panel", panelType: "tinymce" }, { type: "panel", panelType: "ace" }, { type: "panel", panelType: "monaco" },
+					],
+				},
+			],
+		}))
+	</script>
 </body>
 </html>

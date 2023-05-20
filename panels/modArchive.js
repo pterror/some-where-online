@@ -9,7 +9,7 @@
 	document.body.appendChild(chiptune2)
 })()
 
-loadPanelType("modArchive", () => {
+registerPanel("modArchive", () => {
 	// IMPL
 	const player = new ChiptuneJsPlayer(new ChiptuneJsConfig(-1))
 	const blobPromise = fetch("https://modarchive.org/index.php?request=view_random")

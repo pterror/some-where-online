@@ -1,4 +1,4 @@
-loadPanelType("pixiv", () => {
+registerPanel("pixiv", () => {
 	// session cookie
 	// @ts-expect-error
 	const state = JSON.parse(localStorage.getItem("so_pixiv"))
