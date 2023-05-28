@@ -56,11 +56,42 @@
 	<script src="stores/indexeddb.js"></script>
 	<script src="apps/notes.js"></script>
 	<script src="apps/todos.js"></script>
+	<script src="apps/storeList.js"></script>
+	<script src="apps/tinymce.js"></script>
+	<script src="apps/ace.js"></script>
+	<script src="apps/monaco.js"></script>
+	<script src="apps/fileTree.js"></script>
 	<script>
 		storeGet("indexeddb", "global/layout").then(data => render(document.body, data ?? {
-			type: "row",
+			type: "column",
 			children: [
-				{ layout: { type: "app", appType: "notes" } }, { layout: { type: "app", appType: "todos" } },
+				// it would be nice if layout editor could somehow detect fraction units
+				{ layout: {
+					type: "row",
+					children: [
+						// it would be nice if layout editor could somehow detect fraction units
+						{ layout: { type: "app", appType: "notes" } },
+						{ layout: { type: "app", appType: "todos" } },
+						{ layout: { type: "app", appType: "storeList" } },
+					],
+				} },
+				{ layout: {
+					type: "row",
+					children: [
+						{
+							size: "3fr",
+							layout: {
+								type: "row",
+								children: [
+									{ layout: { type: "app", appType: "fileTree" } },
+									{ layout: { type: "app", appType: "tinymce" } },
+									{ layout: { type: "app", appType: "ace" } },
+								],
+							},
+						},
+						{ layout: { type: "app", appType: "monaco" } },
+					],
+				} },
 			],
 		}))
 	</script>

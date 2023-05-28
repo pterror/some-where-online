@@ -26,11 +26,13 @@
 						}
 					}
 					itemEl.onmouseleave = () => { itemEl.removeChild(actionsEl) }
+					// TODO: ondragstart
 					return { itemEl }
 				}
 				const createEmptyItem = () => {
 					const item = { name: "" }
 					const { itemEl } = render(item)
+					itemEl.style.borderBottom = "1px solid"
 					const onMouseEnter = itemEl.onmouseenter
 					itemEl.onmouseenter = null
 					const onMouseLeave = itemEl.onmouseleave
@@ -43,10 +45,11 @@
               itemEl.onkeydown = null
               itemEl.contentEditable = "false"
               storeSet(x.store, itemEl.innerText, null)
+							itemEl.onmouseenter = onMouseEnter
+							itemEl.onmouseleave = onMouseLeave
+							itemEl.style.borderBottom = ""
+							createEmptyItem()
             }
-						itemEl.onmouseenter = onMouseEnter
-						itemEl.onmouseleave = onMouseLeave
-						createEmptyItem()
 					}
 				}
 				for (const item of await storeList(x.store)) { render({ name: item }) }

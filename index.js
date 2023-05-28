@@ -5,6 +5,8 @@
 // quotes, random generation, cyberchef, photopea, excalidraw
 // live html editor, image, video playback, audio playback, slideshow
 // markdown editor via micromark
+// json editor
+// node editor using rete or https://github.com/wbkd/awesome-node-based-uis#javascript-libraries
 // wysiwyg note editor with link support
 // dwitter viewer, shadertoy viewer
 // various playgrounds
@@ -26,9 +28,9 @@ const SWO = {
 	/** @type {Record<keyof Layouts, CreateLayout<any>>} */
 	// @ts-expect-error
 	LAYOUT_CONSTRUCTORS: {},
-	/** @type {Record<keyof Panels, CreatePanel<any>>} */
+	/** @type {Record<keyof Apps, CreateApp<any>>} */
 	// @ts-expect-error
-	PANEL_CONSTRUCTORS: {},
+	APP_CONSTRUCTORS: {},
 }
 
 /** @param {Element} container */
@@ -73,8 +75,6 @@ function render(container, item, isTopLevel = true) {
 		return document.createElement("div")
 	}
 	const el = container.appendChild(ctor(item))
-	const size = item.size ?? "1fr"
-	el.style.flex = /^\d+(\.\d*)?fr/.test(size) ? `${size.slice(0, -2)} 0 0` : `0 0 ${item.size}`
 	if (isTopLevel) {
 		renderConfig(container)
 	}
@@ -86,9 +86,9 @@ function registerLayout(name, layout) {
 	SWO.LAYOUT_CONSTRUCTORS[name] = layout
 }
 
-/** @template {keyof Panels} Type @param {Type} name @param {CreatePanel<Type>} createPanel */
+/** @template {keyof Apps} Type @param {Type} name @param {CreateApp<Type>} createPanel */
 function registerPanel(name, createPanel) {
-	SWO.PANEL_CONSTRUCTORS[name] = createPanel
+	SWO.APP_CONSTRUCTORS[name] = createPanel
 }
 
 /** @param {string} name @param {Store} store */
@@ -120,7 +120,7 @@ function storeList(store) {
 function _handleSwoDrag(event) {
 	if (
 		event.dataTransfer?.items.length !== 1 || event.dataTransfer.items[0]?.kind !== "string" ||
-		event.dataTransfer.items[0].type === "application/json+swo-locator"
+		event.dataTransfer.items[0].type !== "application/json+swo-locator"
 	) {
 		return
 	}
@@ -132,15 +132,13 @@ const storeKeyType = 't' in globalThis ? t.struct({ store: t.string, key: t.stri
 
 /** @param {HTMLElement} el @param {(value: StoreKey) => void} callback */
 function registerSwoDragDrop(el, callback) {
-	el.ondragenter = el.ondragover = _handleSwoDrag
-	/** @param {DragEvent} event */
-	el.ondrop = event => {
+	el.addEventListener("dragenter", _handleSwoDrag)
+	el.addEventListener("dragover", _handleSwoDrag)
+	el.addEventListener("dragleave", event => {
 		if (
 			event.dataTransfer?.items.length !== 1 || event.dataTransfer.items[0]?.kind !== "string" ||
-			event.dataTransfer.items[0].type === "application/json+swo-locator"
-		) {
-			return
-		}
+			event.dataTransfer.items[0].type !== "application/json+swo-locator"
+		) { return }
 		event.dataTransfer.items[0].getAsString(s => {
 			const data = JSON.parse(s)
 			if (storeKeyType === undefined) {
@@ -149,7 +147,7 @@ function registerSwoDragDrop(el, callback) {
 				callback(data)
 			}
 		})
-	}
+	})
 }
 
 const constTrue = () => true
